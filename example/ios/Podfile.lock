@@ -1,0 +1,29 @@
+PODS:
+  - fijkplayer (0.11.0):
+    - Flutter
+  - Flutter (1.0.0)
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+
+DEPENDENCIES:
+  - fijkplayer (from `.symlinks/plugins/fijkplayer/ios`)
+  - Flutter (from `Flutter`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
+
+EXTERNAL SOURCES:
+  fijkplayer:
+    :path: ".symlinks/plugins/fijkplayer/ios"
+  Flutter:
+    :path: Flutter
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
+
+SPEC CHECKSUMS:
+  fijkplayer: b89596b2256ec814c51910a499108633818c6390
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
+
+PODFILE CHECKSUM: cf0c950f7e9a456b4e325f5b8fc0f98906a3705a
+
+COCOAPODS: 1.16.2
