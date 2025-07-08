@@ -1,6 +1,6 @@
 rootProject.name = 'fijkplayer-android'
 
-include ':app'
+include ':app', ':fijkplayer-full'
 
 def flutterProjectRoot = rootProject.projectDir.parentFile.toPath()
 
