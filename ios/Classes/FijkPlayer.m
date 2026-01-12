@@ -557,6 +557,7 @@ static int renderType = 0;
         result(nil);
     } else if ([@"getCurrentPosition" isEqualToString:call.method]) {
         long pos = [_ijkMediaPlayer getCurrentPosition];
+        NSLog(@" fijkplayer getCurrentPosition %d", pos);
         result(@(pos));
     } else if ([@"setVolume" isEqualToString:call.method]) {
         double volume = [argsMap[@"volume"] doubleValue];
