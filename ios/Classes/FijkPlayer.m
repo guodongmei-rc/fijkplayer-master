@@ -295,6 +295,7 @@ static int renderType = 0;
             andArg1:(int)arg1
             andArg2:(int)arg2
            andExtra:(void *)extra {
+    NSLog(@"<<< runcam >>> what %d", what);
     switch (what) {
     case IJKMPET_PREPARED:
         [_eventSink success:@{

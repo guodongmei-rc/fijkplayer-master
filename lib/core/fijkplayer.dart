@@ -497,6 +497,16 @@ class FijkPlayer extends ChangeNotifier implements ValueListenable<FijkValue> {
     }
   }
 
+  Future<void> currentPosition() async {
+    await _nativeSetup.future;
+    if (!isPlayable()) {
+      FijkLog.e("$this invoke currentPosition invalid state:$state");
+      return Future.error(StateError("Non playable state $state"));
+    } else {
+      _channel.invokeMethod("getCurrentPosition");
+    }
+  }
+
   void _eventListener(dynamic event) {
     final Map<dynamic, dynamic> map = event;
     switch (map['event']) {
