@@ -459,7 +459,7 @@ public class FijkPlayer implements MethodChannel.MethodCallHandler, IjkEventList
             result.success(null);
         } else if (call.method.equals("getCurrentPosition")) {
             long pos = mIjkMediaPlayer.getCurrentPosition();
-            handleEvent(IJKMPET_CURRENT_POSITION_UPDATE, pos, -1, null);
+            handleEvent(CURRENT_POSITION_UPDATE, (int) pos, -1, null);
             result.success(pos);
         } else if (call.method.equals("setVolume")) {
             final Double volume = call.argument("volume");
