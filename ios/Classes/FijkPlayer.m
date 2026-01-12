@@ -452,7 +452,7 @@ static int renderType = 0;
 
 - (void)handleMethodCall:(FlutterMethodCall *)call
                   result:(FlutterResult)result {
-
+    NSLog(@" fijkplayer call.method：%@",call.method);
     NSDictionary *argsMap = call.arguments;
     if ([@"setupSurface" isEqualToString:call.method]) {
         result([self setupSurface]);
