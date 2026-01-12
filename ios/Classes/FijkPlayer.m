@@ -452,7 +452,6 @@ static int renderType = 0;
 
 - (void)handleMethodCall:(FlutterMethodCall *)call
                   result:(FlutterResult)result {
-    NSLog(@" fijkplayer call.method：%@",call.method);
     NSDictionary *argsMap = call.arguments;
     if ([@"setupSurface" isEqualToString:call.method]) {
         result([self setupSurface]);
@@ -556,9 +555,12 @@ static int renderType = 0;
                  andExtra:nil];
         result(nil);
     } else if ([@"getCurrentPosition" isEqualToString:call.method]) {
-        NSLog(@" fijkplayer getCurrentPosition");
         long pos = [_ijkMediaPlayer getCurrentPosition];
         NSLog(@" fijkplayer getCurrentPosition %d", pos);
+        [self handleEvent:IJKMPET_CURRENT_POSITION_UPDATE
+                  andArg1:pos
+                  andArg2:nil
+                 andExtra:nil];
         result(@(pos));
     } else if ([@"setVolume" isEqualToString:call.method]) {
         double volume = [argsMap[@"volume"] doubleValue];
