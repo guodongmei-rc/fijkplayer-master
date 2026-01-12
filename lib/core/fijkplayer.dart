@@ -503,6 +503,7 @@ class FijkPlayer extends ChangeNotifier implements ValueListenable<FijkValue> {
       FijkLog.e("$this invoke currentPosition invalid state:$state");
       return Future.error(StateError("Non playable state $state"));
     } else {
+      FijkLog.i("$this invoke getCurrentPosition ");
       _channel.invokeMethod("getCurrentPosition");
     }
   }

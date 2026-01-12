@@ -556,6 +556,7 @@ static int renderType = 0;
                  andExtra:nil];
         result(nil);
     } else if ([@"getCurrentPosition" isEqualToString:call.method]) {
+        NSLog(@" fijkplayer getCurrentPosition");
         long pos = [_ijkMediaPlayer getCurrentPosition];
         NSLog(@" fijkplayer getCurrentPosition %d", pos);
         result(@(pos));
