@@ -23,7 +23,7 @@
 #import <Foundation/Foundation.h>
 #import "IJKFFOptions.h"
 #import "IJKSDLGLViewProtocol.h"
-//#import "ijkplayer/ijkplayer.h"
+#import "ijkplayer/ijkplayer.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
