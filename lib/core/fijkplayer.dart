@@ -428,9 +428,6 @@ class FijkPlayer extends ChangeNotifier implements ValueListenable<FijkValue> {
       _setValue(
           FijkValue.uninitialized().copyWith(fullScreen: value.fullScreen));
     }
-
-
-    
   }
 
   Future<void> seekTo(int msec) async {
