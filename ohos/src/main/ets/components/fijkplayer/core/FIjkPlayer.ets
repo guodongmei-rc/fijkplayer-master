@@ -111,7 +111,12 @@ export class FIjkPlayer implements MethodCallHandler, StreamHandler, OnMessageCa
     // 预览模式
     // 低延迟第 1 步：previewMode=1 后 video_refresh 以 10ms 节拍尽快排空图像队列、不做时钟修正，
     // 把 pictq 积压（最多 9 帧，30fps 下约 300ms）压掉。预览画面节拍跟随到达节拍。
-    // this.player.setOption(PLAYER, "previewMode", '1');
+    // 必须放在这里而不是 Dart 侧：reset() 会销毁 native 播放器，只有这里的 option 会在重拉时重设，
+    // Dart 侧 setOption 不会自动恢复。实测 reset 后 previewMode 丢失会让 pictq 常满、积压永不排空。
+    this.player.setOption(PLAYER, "previewMode", '1');
+    // 预览追帧：Wi-Fi 断流后突发补包会在视频包队列留下永久积压（软解只比 60fps 多几帧，排不动）。
+    // 包数超过 20（60fps 约 330ms）就丢到队列里最后一个关键帧，相机 GOP 1s，画面最多前跳 1s，不卡顿。
+    this.player.setOption(PLAYER, "preview_max_backlog", '20');
     this.player.setOption(PLAYER, "preview_drop_firstframe", '30'); // 丢首次开屏帧
     this.player.setOption(PLAYER, "an", '1'); // 不解码音频
     this.player.setOption(PLAYER, "overlay-format", '844318047'); // SDL_FCC__GLES2 = FOURCC('_','E','S','2')，OHOS 的 FFmpeg 不解析 "fcc-" 字符串，必须传数值
@@ -153,6 +158,12 @@ export class FIjkPlayer implements MethodCallHandler, StreamHandler, OnMessageCa
         result.success(this.textureId);
         break;
       case "setOption":
+        // reset() 已销毁 native 播放器，此时 Dart 侧的 setOption 到 native 层会因 mp 为空被静默丢弃。
+        // 和 setDataSource 一样先重建，保证顺序仍是 ets 默认 option 在前、Dart 覆盖在后。
+        if (this.hasReset) {
+          this.setUpPlayer();
+          this.hasReset = false;
+        }
         const category: number = call.argument('cat');
         const key: string = call.argument("key");
         if (call.hasArgument('long')) {
@@ -165,6 +176,10 @@ export class FIjkPlayer implements MethodCallHandler, StreamHandler, OnMessageCa
         result.success(null);
         break;
       case "applyOptions":
+        if (this.hasReset) {
+          this.setUpPlayer();
+          this.hasReset = false;
+        }
         if (call.args instanceof Map) {
           const map: Map<ESObject, ESObject> = call.args as Map<ESObject, ESObject>;
           map.forEach((key: ESObject, value: ESObject) => {
