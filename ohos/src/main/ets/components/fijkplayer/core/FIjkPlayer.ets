@@ -83,9 +83,17 @@ export class FIjkPlayer implements MethodCallHandler, StreamHandler, OnMessageCa
     // this.player.setOption(PLAYER, "mediacodec-hevc", '0');
     // this.player.setOption(PLAYER, "mediacodec", '0');
     // this.player.setOption(PLAYER, "mediacodec-auto-rotate", '1');
-    // this.player.setOption(PLAYER, "fast", '1'); // 开启快速解码模式
+    // 低延迟第 2 步：fast 开 AV_CODEC_FLAG2_FAST 非规范加速，补偿单线程解码的吞吐损失，画质基本无感
+    this.player.setOption(PLAYER, "fast", '1');
     // this.player.setOption(PLAYER, "low_pic", '0');
-    // this.player.setOption(CODEC, "skip_loop_filter", '48');
+    // 低延迟第 2 步：解码器去延迟。
+    // threads=1 关掉帧级多线程（默认 auto 要攒 线程数-1 帧才出图，8 核约 230ms）；
+    // flags=+low_delay 不为重排序囤帧，省 1~2 帧；
+    // skip_loop_filter=48 跳过去块滤波，解码快 15%~25%，代价是轻微块状感。
+    // 若单核跟不上（画面周期卡顿、延迟缓慢爬升），改为 threads=auto + thread_type=slice，再不行退到 threads=2。
+    this.player.setOption(CODEC, "threads", '1');
+    this.player.setOption(CODEC, "flags", '+low_delay');
+    this.player.setOption(CODEC, "skip_loop_filter", '48');
     // 探测
     this.player.setOption(FORMAT, "analyzeduration", '3000000');
     this.player.setOption(FORMAT, "probesize", '1048576');
