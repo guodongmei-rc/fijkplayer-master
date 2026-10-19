@@ -22,7 +22,19 @@ class _VideoScreenState extends State<VideoScreen> {
   void initState() {
     super.initState();
     player.setOption(FijkOption.hostCategory, "enable-snapshot", 1);
-    player.setOption(FijkOption.playerCategory, "mediacodec-all-videos", 1);
+
+    player.setOption(FijkOption.playerCategory, 'previewMode', 1);
+
+    player.setOption(FijkOption.playerCategory, 'infbuf', 1);
+    player.setOption(FijkOption.playerCategory, 'nobuffer', 'fflags');
+    player.setOption(FijkOption.formatCategory, 'probesize', 1024);
+    player.setOption(FijkOption.playerCategory, 'framedrop', 1);
+
+    // RTSP 预览走软解：ohcodec 硬解在 find_stream_info=0 时拿不到宽高会直接打开失败，
+    // 且 previewMode 的低延迟逻辑只对软解帧生效。本地/点播文件仍用硬解。
+    if (!widget.url.startsWith("rtsp://")) {
+      player.setOption(FijkOption.playerCategory, "mediacodec-all-videos", 1);
+    }
     startPlay();
   }
 

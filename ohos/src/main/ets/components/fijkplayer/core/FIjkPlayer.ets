@@ -11,11 +11,10 @@ import {
   MethodResult,
   StreamHandler
 } from '@ohos/flutter_ohos';
-import { IjkMediaPlayer, MessageType } from '@zaiohos/ijkplayer-surface';
+import { IjkMediaPlayer, MessageType, OnMessageCallback } from '@ohos/ijkplayer';
 import { HashMap, uri } from '@kit.ArkTS';
 import { MediaInfoType, OptionsCategory, PlayerState } from '../common/Constants';
 import HostOption from '../common/HostOption';
-import { OnMessageCallback } from '@zaiohos/ijkplayer-surface/src/main/ets/ijkplayer/callback/OnMessageCallback';
 import { getFilePathByAssetsPath } from '../common/AssetsCopyUtil';
 
 const TAG = "FIjkPlayerTag";
@@ -71,8 +70,56 @@ export class FIjkPlayer implements MethodCallHandler, StreamHandler, OnMessageCa
       return;
     }
     this.player.native_setup();
-    this.player.setOption(OptionsCategory.OPT_CATEGORY_PLAYER.toString(), "enable-position-notify", '1');
-    this.player.setOption(OptionsCategory.OPT_CATEGORY_PLAYER.toString(), "start-on-prepared", '0');
+    const PLAYER = OptionsCategory.OPT_CATEGORY_PLAYER.toString();
+    const FORMAT = OptionsCategory.OPT_CATEGORY_FORMAT.toString();
+    const CODEC = OptionsCategory.OPT_CATEGORY_CODEC.toString();
+
+    this.player.setOption(PLAYER, "enable-position-notify", '1');
+    // fijkplayer 由 Dart 层控制起播时机，保持 0，不随 iOS 配置改为 1
+    this.player.setOption(PLAYER, "start-on-prepared", '0');
+
+    // ---------- 低延迟预览配置（与 iOS FijkPlayer.m 对齐） ----------
+    // 解码：关闭硬解走软解（previewMode 的帧间隔改动只对软解帧生效）
+    // this.player.setOption(PLAYER, "mediacodec-hevc", '0');
+    // this.player.setOption(PLAYER, "mediacodec", '0');
+    // this.player.setOption(PLAYER, "mediacodec-auto-rotate", '1');
+    // this.player.setOption(PLAYER, "fast", '1'); // 开启快速解码模式
+    // this.player.setOption(PLAYER, "low_pic", '0');
+    // this.player.setOption(CODEC, "skip_loop_filter", '48');
+    // 探测
+    this.player.setOption(FORMAT, "analyzeduration", '3000000');
+    this.player.setOption(FORMAT, "probesize", '1048576');
+    this.player.setOption(PLAYER, "find_stream_info", '0');
+    // 缓冲
+    this.player.setOption(FORMAT, "max_delay", '0'); // 禁用缓冲延迟
+    this.player.setOption(FORMAT, "fflags", 'nobuffer');
+    this.player.setOption(FORMAT, "flush_packets", '1');
+    this.player.setOption(PLAYER, "packet-buffering", '0');
+    this.player.setOption(PLAYER, "max-buffer-size", '2097152');
+    this.player.setOption(PLAYER, "infbuf", '1');
+    this.player.setOption(PLAYER, "min-frames", '30');
+    this.player.setOption(PLAYER, "framedrop", '60');
+    this.player.setOption(PLAYER, "video-pictq-size", '9');
+    // 预览模式
+    // 低延迟第 1 步：previewMode=1 后 video_refresh 以 10ms 节拍尽快排空图像队列、不做时钟修正，
+    // 把 pictq 积压（最多 9 帧，30fps 下约 300ms）压掉。预览画面节拍跟随到达节拍。
+    // this.player.setOption(PLAYER, "previewMode", '1');
+    this.player.setOption(PLAYER, "preview_drop_firstframe", '30'); // 丢首次开屏帧
+    this.player.setOption(PLAYER, "an", '1'); // 不解码音频
+    this.player.setOption(PLAYER, "overlay-format", '844318047'); // SDL_FCC__GLES2 = FOURCC('_','E','S','2')，OHOS 的 FFmpeg 不解析 "fcc-" 字符串，必须传数值
+    // 网络
+    // 对照验证：去掉此行后已确认能出流（默认先 UDP、失败再回落 TCP）。
+    // 现单独加回，若再次出现 prepare 阻塞约 60 秒后 FijkException(-10000, 0)，即可确定是此行导致。
+    this.player.setOption(FORMAT, "rtsp_transport", 'tcp');
+    this.player.setOption(FORMAT, "dns_cache_clear", '1');
+    // 以下选项来自 iOS 定制版 ijkplayer，本 OpenHarmony 版 ijkplayer / FFmpeg 中不存在，设置了也不会生效，保留注释以便对照：
+    // this.player.setOption(PLAYER, "video-pictq-size-min", '3');
+    // this.player.setOption(PLAYER, "video-pictq-size-max", '6');
+    // this.player.setOption(PLAYER, "max_cached_duration", '10');
+    // this.player.setOption(PLAYER, "keyframe_start", '1');
+    // this.player.setOption(PLAYER, "reconnect", '5');
+    // this.player.setOption(FORMAT, "analyzemaxduration", '100');
+    // this.player.setOption(FORMAT, "http-detect-range-support", '0');
   }
 
   /**

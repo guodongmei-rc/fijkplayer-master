@@ -6,6 +6,7 @@
   "author": "",
   "license": "",
   "dependencies": {
-    "fijkplayer": "file:../har/fijkplayer.har"
+    "fijkplayer": "file:../har/fijkplayer.har",
+    "@ohos/flutter_ohos": "har/flutter.har"
   }
 }
