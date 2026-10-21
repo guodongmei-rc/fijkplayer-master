@@ -364,6 +364,9 @@ FijkSlider(
 | `enterFullScreen` | 进入全屏 | 方法 | 无 | `void` | 否 | 是 |
 | `exitFullScreen` | 退出全屏 | 方法 | 无 | `void` | 否 | 是 |
 | `isPlayable` | 是否可播放 | 方法 | 无 | `bool` | 否 | 是 |
+| `getDuration` | 读取原生层时长（毫秒），prepared 前返回 0，需 `find_stream_info=1` | 方法 | 无 | `Future<int>` | 否 | 是（仅 OHOS 实现） |
+| `getBitRate` | 读取整体码率（bps），prepared 前返回 0，需 `find_stream_info=1` | 方法 | 无 | `Future<int>` | 否 | 是（仅 OHOS 实现） |
+| `getMediaInfo` | 读取解码器名和流元信息（宽高、帧率、是否有音轨），prepared 前返回 null | 方法 | 无 | `Future<FijkMediaInfo?>` | 否 | 是（仅 OHOS 实现） |
 | `id` | 播放器ID | 属性 | 无 | `Future<int>` | — | 是 |
 | `idSync` | 同步播放器ID | 属性 | 无 | `int` | — | 是 |
 | `state` | 当前状态 | 属性 | 无 | `FijkState` | — | 是 |

@@ -81,6 +81,17 @@ class FijkPlayerTester {
         return null;
       case 'setSpeed':
         return null;
+      case 'getDuration':
+        return 12345;
+      case 'getBitRate':
+        return 8000000;
+      case 'getMediaInfo':
+        return <String, dynamic>{
+          'videoDecoder': 'h264, avcodec',
+          'audioDecoder': 'aac, avcodec',
+          'meta':
+              'key:width,value:1920;key:height,value:1080;key:tbr_num,value:60;key:tbr_den,value:1;key:sample_rate,value:48000;',
+        };
       default:
         return Future.error("invalid call name ${call.method}");
     }
@@ -366,6 +377,67 @@ void main() {
         return e is StateError;
       });
       expect(stateError, true);
+    });
+  });
+
+  group("test FijkPlayer media info api", () {
+    Future<FijkPlayer> preparedPlayer() async {
+      FijkPlayer player = FijkPlayer();
+      await player.setupSurface();
+      await player.setDataSource("assets://butterfly.mp4");
+      Completer<void> prepared = Completer();
+      player.addListener(() {
+        if (player.value.state == FijkState.prepared && !prepared.isCompleted) {
+          prepared.complete();
+        }
+      });
+      await player.prepareAsync();
+      await prepared.future;
+      return player;
+    }
+
+    test("getDuration, getBitRate, getMediaInfo before prepared", () async {
+      FijkPlayer player = FijkPlayer();
+      await player.setupSurface();
+      expect(await player.getDuration(), 0);
+      expect(await player.getBitRate(), 0);
+      expect(await player.getMediaInfo(), isNull);
+      await player.release();
+    });
+
+    test("getDuration after prepared", () async {
+      FijkPlayer player = await preparedPlayer();
+      expect(await player.getDuration(), 12345);
+      await player.release();
+    });
+
+    test("getBitRate after prepared", () async {
+      FijkPlayer player = await preparedPlayer();
+      expect(await player.getBitRate(), 8000000);
+      await player.release();
+    });
+
+    test("getMediaInfo after prepared", () async {
+      FijkPlayer player = await preparedPlayer();
+      FijkMediaInfo? info = await player.getMediaInfo();
+      expect(info, isNotNull);
+      expect(info!.videoDecoder, "h264, avcodec");
+      expect(info.width, 1920);
+      expect(info.height, 1080);
+      expect(info.fps, 60);
+      expect(info.hasAudio, isTrue);
+      await player.release();
+    });
+
+    test("missing native implementation returns defaults", () async {
+      FijkPlayer player = await preparedPlayer();
+      int id = await player.id;
+      // Drop the mock handlers so invokeMethod raises MissingPluginException,
+      // which is what iOS / Android do until they implement these calls.
+      playerTesters[id]?.release();
+      expect(await player.getDuration(), 0);
+      expect(await player.getBitRate(), 0);
+      expect(await player.getMediaInfo(), isNull);
     });
   });
 }

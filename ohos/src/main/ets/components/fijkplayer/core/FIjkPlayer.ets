@@ -254,6 +254,24 @@ export class FIjkPlayer implements MethodCallHandler, StreamHandler, OnMessageCa
         const position: number | undefined = this.player?.getCurrentPosition();
         result.success(position ? position : 0);
         break;
+      case "getDuration":
+        // 依赖 find_stream_info=1，否则 ijkplayer 拿不到 ic->duration，这里恒为 0
+        result.success(this.player?.getDuration() ?? 0);
+        break;
+      case "getBitRate":
+        // FFP_PROP_INT64_BIT_RATE，同样依赖 find_stream_info=1
+        result.success(this.player?.getBitRate() ?? 0);
+        break;
+      case "getMediaInfo": {
+        // har 返回的是匿名接口对象，拆成 HashMap 再过 method channel；meta 原样透传，解析放 Dart 侧
+        const info: ESObject = this.player?.getMediaInfo();
+        const mediaInfo: HashMap<string, ESObject> = new HashMap();
+        mediaInfo.set("videoDecoder", info?.videoDecoder ?? "");
+        mediaInfo.set("audioDecoder", info?.audioDecoder ?? "");
+        mediaInfo.set("meta", info?.meta ?? "");
+        result.success(mediaInfo);
+        break;
+      }
       case "setVolume":
         const volume: number = call.argument('volume');
         const volumeStr = volume == undefined ? '1.0' : volume.toString();

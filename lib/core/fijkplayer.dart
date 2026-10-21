@@ -508,6 +508,65 @@ class FijkPlayer extends ChangeNotifier implements ValueListenable<FijkValue> {
     }
   }
 
+  /// Media duration in milliseconds reported by the native player.
+  ///
+  /// Returns 0 before prepared, or when the platform plugin does not
+  /// implement this call (currently only OpenHarmony does).
+  /// On OpenHarmony this needs the player option `find_stream_info` = 1,
+  /// otherwise the native player cannot compute the duration.
+  Future<int> getDuration() async {
+    await _nativeSetup.future;
+    if (!isPlayable()) {
+      FijkLog.e("$this invoke getDuration invalid state:$state");
+      return 0;
+    }
+    try {
+      return await _channel.invokeMethod<int>("getDuration") ?? 0;
+    } on MissingPluginException {
+      FijkLog.w("$this getDuration not implemented on this platform");
+      return 0;
+    }
+  }
+
+  /// Overall bit rate in bits per second reported by the native player.
+  ///
+  /// Returns 0 before prepared, or when the platform plugin does not
+  /// implement this call (currently only OpenHarmony does).
+  /// On OpenHarmony this needs the player option `find_stream_info` = 1.
+  Future<int> getBitRate() async {
+    await _nativeSetup.future;
+    if (!isPlayable()) {
+      FijkLog.e("$this invoke getBitRate invalid state:$state");
+      return 0;
+    }
+    try {
+      return await _channel.invokeMethod<int>("getBitRate") ?? 0;
+    } on MissingPluginException {
+      FijkLog.w("$this getBitRate not implemented on this platform");
+      return 0;
+    }
+  }
+
+  /// Decoder names and stream meta, see [FijkMediaInfo].
+  ///
+  /// Returns null before prepared, or when the platform plugin does not
+  /// implement this call (currently only OpenHarmony does).
+  Future<FijkMediaInfo?> getMediaInfo() async {
+    await _nativeSetup.future;
+    if (!isPlayable()) {
+      FijkLog.e("$this invoke getMediaInfo invalid state:$state");
+      return null;
+    }
+    try {
+      final Map<dynamic, dynamic>? raw =
+          await _channel.invokeMethod<Map<dynamic, dynamic>>("getMediaInfo");
+      return raw == null ? null : FijkMediaInfo.fromMap(raw);
+    } on MissingPluginException {
+      FijkLog.w("$this getMediaInfo not implemented on this platform");
+      return null;
+    }
+  }
+
   void _eventListener(dynamic event) {
     final Map<dynamic, dynamic> map = event;
     switch (map['event']) {
