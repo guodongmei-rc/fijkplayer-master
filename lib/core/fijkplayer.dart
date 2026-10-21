@@ -521,11 +521,27 @@ class FijkPlayer extends ChangeNotifier implements ValueListenable<FijkValue> {
       return 0;
     }
     try {
-      return await _channel.invokeMethod<int>("getDuration") ?? 0;
+      return _toInt(await _channel.invokeMethod<dynamic>("getDuration"));
     } on MissingPluginException {
       FijkLog.w("$this getDuration not implemented on this platform");
       return 0;
     }
+  }
+
+  /// Normalize a numeric value coming over the method channel.
+  ///
+  /// The OpenHarmony surface-mode napi returns `getPropertyLong` results as a
+  /// String (see ijkplayer_surface_napi.cpp), and other platforms may send a
+  /// double, so accept int / double / String and fall back to 0.
+  static int _toInt(dynamic value) {
+    if (value is int) return value;
+    if (value is double) return value.isFinite ? value.round() : 0;
+    if (value is String) {
+      return int.tryParse(value.trim()) ??
+          double.tryParse(value.trim())?.round() ??
+          0;
+    }
+    return 0;
   }
 
   /// Overall bit rate in bits per second reported by the native player.
@@ -540,7 +556,7 @@ class FijkPlayer extends ChangeNotifier implements ValueListenable<FijkValue> {
       return 0;
     }
     try {
-      return await _channel.invokeMethod<int>("getBitRate") ?? 0;
+      return _toInt(await _channel.invokeMethod<dynamic>("getBitRate"));
     } on MissingPluginException {
       FijkLog.w("$this getBitRate not implemented on this platform");
       return 0;

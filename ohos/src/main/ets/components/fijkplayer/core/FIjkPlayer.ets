@@ -256,11 +256,13 @@ export class FIjkPlayer implements MethodCallHandler, StreamHandler, OnMessageCa
         break;
       case "getDuration":
         // 依赖 find_stream_info=1，否则 ijkplayer 拿不到 ic->duration，这里恒为 0
-        result.success(this.player?.getDuration() ?? 0);
+        result.success(this.toNumber(this.player?.getDuration()));
         break;
       case "getBitRate":
-        // FFP_PROP_INT64_BIT_RATE，同样依赖 find_stream_info=1
-        result.success(this.player?.getBitRate() ?? 0);
+        // FFP_PROP_INT64_BIT_RATE，同样依赖 find_stream_info=1。
+        // surface 模式下 ijkplayer_surface_napi 的 _getPropertyLong 用 napi_create_string_utf8 返回，
+        // 实际拿到的是字符串 "1168751" 而不是 number，不转的话 Dart 侧 as int 会抛 TypeError。
+        result.success(this.toNumber(this.player?.getBitRate()));
         break;
       case "getMediaInfo": {
         // har 返回的是匿名接口对象，拆成 HashMap 再过 method channel；meta 原样透传，解析放 Dart 侧
@@ -308,6 +310,17 @@ export class FIjkPlayer implements MethodCallHandler, StreamHandler, OnMessageCa
 
   onPlayerStateChangeLocal(newState: number, oldState: number) {
 
+  }
+
+  /**
+   * har 的部分 getter 在 surface 模式下返回字符串（d.ets 声明是 number），统一转成 number，转不出来给 0。
+   */
+  private toNumber(value: ESObject): number {
+    if (value === undefined || value === null) {
+      return 0;
+    }
+    const num: number = Number(value);
+    return Number.isFinite(num) ? num : 0;
   }
 
   onMessage(what: number, arg1: number, arg2: number, obj: string) {

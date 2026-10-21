@@ -33,6 +33,12 @@ class FijkPlayerTester {
   final MethodChannel playerEvent;
   final MethodChannel playerMethod;
 
+  /// What the mocked native side returns for getDuration / getBitRate.
+  /// Tests override these to simulate platform type quirks, e.g. the
+  /// OpenHarmony surface-mode napi returns getPropertyLong as a String.
+  dynamic durationValue = 12345;
+  dynamic bitRateValue = 8000000;
+
   FijkPlayerTester({this.id})
       : playerEvent = MethodChannel("befovy.com/fijkplayer/event/$id"),
         playerMethod = MethodChannel("befovy.com/fijkplayer/$id") {
@@ -82,9 +88,9 @@ class FijkPlayerTester {
       case 'setSpeed':
         return null;
       case 'getDuration':
-        return 12345;
+        return durationValue;
       case 'getBitRate':
-        return 8000000;
+        return bitRateValue;
       case 'getMediaInfo':
         return <String, dynamic>{
           'videoDecoder': 'h264, avcodec',
@@ -426,6 +432,25 @@ void main() {
       expect(info.height, 1080);
       expect(info.fps, 60);
       expect(info.hasAudio, isTrue);
+      await player.release();
+    });
+
+    test("getBitRate tolerates a String from the native side", () async {
+      // OpenHarmony surface-mode napi returns getPropertyLong as a String.
+      FijkPlayer player = await preparedPlayer();
+      int id = await player.id;
+      playerTesters[id]!.bitRateValue = "8000000";
+      expect(await player.getBitRate(), 8000000);
+      playerTesters[id]!.bitRateValue = "garbage";
+      expect(await player.getBitRate(), 0);
+      await player.release();
+    });
+
+    test("getDuration tolerates a double from the native side", () async {
+      FijkPlayer player = await preparedPlayer();
+      int id = await player.id;
+      playerTesters[id]!.durationValue = 12345.0;
+      expect(await player.getDuration(), 12345);
       await player.release();
     });
 

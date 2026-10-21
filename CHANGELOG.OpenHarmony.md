@@ -6,3 +6,4 @@
 
  *add `getDuration` / `getBitRate` / `getMediaInfo` on FijkPlayer (OHOS only), forwarding ijkplayer getDuration, FFP_PROP_INT64_BIT_RATE and getMediaInfo
  *add `FijkMediaInfo` to parse the OHOS napi meta string (width/height, fps from tbr_num/tbr_den, hasAudio)
+ *fix getBitRate: surface-mode napi returns getPropertyLong as a String, convert to number in ets and normalize int/double/String on the Dart side
